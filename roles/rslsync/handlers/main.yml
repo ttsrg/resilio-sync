@@ -1,0 +1,27 @@
+---
+- name:  start service rslsync
+  service: name=resilio-sync.service enabled=yes  state=started
+  become: yes
+
+- name:  restart service rslsync
+  service: name=resilio-sync.service enabled=yes  state=restarted
+  become: yes
+
+- name: fact Resilio-sync version
+  shell:    rslsync --help | head -n2  2>&1
+  register: rslsync_version
+  args:
+    warn: no
+  notify: save_fact_rslsync
+#####!!  changed_when: no
+
+
+- name: save_fact_rslsync
+  copy:
+    content: |
+      {
+        "version": "{{ rslsync_version.stdout}}",
+        "installed": "{{ ansible_date_time.iso8601 }}"
+      }
+    dest: /etc/ansible/facts.d/rslsync.fact
+  become: yes

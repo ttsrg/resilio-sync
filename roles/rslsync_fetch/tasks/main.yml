@@ -1,0 +1,7 @@
+---   
+- name: Specifying a path directly
+  fetch:
+    src: /etc/resilio-sync/secret.txt
+    dest: /tmp/secret.txt
+    flat: yes
+  become: yes

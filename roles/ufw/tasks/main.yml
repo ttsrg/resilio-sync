@@ -1,0 +1,75 @@
+---   
+### ufw is installed in ubuntu 16.04
+- name: Install ufw
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+  become: yes
+  when: (ansible_distribution == "Debian")
+
+- name: is  folder /etc/ansible/facts.d exist
+  stat: path="/etc/ansible/facts.d"
+  register: factsfolder
+
+- name: UFW version
+  shell:   ufw version | grep -w ufw  2>&1
+  register: ufw_version
+  args:
+    warn: no
+  notify: save fact
+  when: not factsfolder.stat.exists
+#####!!  changed_when: no
+
+
+- name: UFW ALLOW IP rules 
+  ufw:       
+    rule: allow       
+    src: '{{item}}'     
+  with_items:       
+    "{{ v_peer2 }}"
+  become: yes
+
+
+- name: UFW ALLOW ports rules 
+  ufw:       
+    rule: allow       
+    port: '{{item}}'     
+  with_items:       
+    - '22'
+    - '{{v_webgui_port}}'
+  become: yes
+  notify: enable and restart ufw service
+
+- name: UFW ALLOW ports rules from hosts
+  ufw:
+    rule: allow
+    src: "{{v_peer2}}"
+    port: '{{item}}'
+  with_items:
+    - "{{ v_listen_port }}"
+  become: yes
+
+
+#- name: flush handlers
+#  meta:  flush_handlers
+
+
+
+- name: check is ufw status active
+  shell: ufw status
+  register: ufw_status
+  changed_when: no
+  become: yes
+
+-  debug: var=ufw_status.stdout_lines
+#-  debug: msg=ufw_status.stdout
+
+
+- name: enable ufw ....workaround
+  shell: 'echo y | ufw enable' 
+#  when: ufw_status.stdout is search("inactive")
+  when: '"Status: inactive" in ufw_status.stdout'
+  become: yes
+
+

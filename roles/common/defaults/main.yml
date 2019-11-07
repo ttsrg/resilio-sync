@@ -1,0 +1,7 @@
+---
+packages:
+  - net-tools
+  - ntp
+  - nano
+  - mc
+#  - git

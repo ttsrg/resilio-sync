@@ -1,0 +1,50 @@
+---
+
+- name: Install common packages
+  hosts: all
+  tags: common
+  roles:
+  - common
+#???  - upgradepackages
+
+
+
+- name: Install resilio
+  hosts:  peer
+  tags: peer
+  roles:
+  - rslsync
+  vars:
+    - v_dir: /srv/sync/
+    - v_ip_ranges: '0.0.0.0'
+    - v_webgui_port: '8888'
+    - v_listen_port: '8889'
+    - v_secret: ""
+    - v_usersyncpass: ""
+
+- name : fetch secret
+  hosts: peer
+  tags: secret_fetch
+  roles:
+  -  rslsync_fetch
+
+
+
+- name: setup ufw
+  hosts:  peer
+  tags: ufw
+  roles:
+  - ufw
+  vars:
+    - v_ip_ranges: '0.0.0.0'
+    - v_webgui_port: '8888'
+    - v_listen_port: '8889'
+
+
+- name : copy secret
+  hosts: peer
+  tags: secret_copy, never
+  roles:
+  -  rslsync_copy
+
+

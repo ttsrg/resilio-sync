@@ -1,0 +1,32 @@
+---
+
+- name: wget deb
+  get_url:
+     url: https://download-cdn.resilio.com/2.6.3/Debian/resilio-sync_2.6.3-1_amd64.deb
+     dest: /tmp/
+  become: yes
+  when: (ansible_distribution == "Ubuntu") or (ansible_distribution == "Debian")
+
+- name: "Install a .deb package"
+  apt:
+    deb: /tmp/resilio-sync_2.6.3-1_amd64.deb
+  become: yes
+  when: (ansible_distribution == "Ubuntu") or (ansible_distribution == "Debian")
+
+
+- name: Install resilio-sync
+  apt:
+    name: resilio-sync
+    state: present
+    update_cache: yes
+  notify:
+    - start service rslsync
+    - fact Resilio-sync version
+  become: yes
+
+
+
+#- debug: msg="installed resilio-sync"
+- debug: var=ansible_distribution
+- debug: var=ansible_distribution_version
+

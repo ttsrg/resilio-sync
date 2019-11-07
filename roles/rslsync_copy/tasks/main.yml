@@ -1,0 +1,9 @@
+---   
+- name: Specifying a path directly
+  copy:
+    src: /tmp/secret.txt 
+    dest: /etc/resilio-sync/secret.txt
+    owner: rslsync
+    mode: 0640
+    force: yes
+  become: yes

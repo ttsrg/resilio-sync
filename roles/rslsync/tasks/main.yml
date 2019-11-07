@@ -1,0 +1,9 @@
+---
+- name: install resilio-sync
+  include: install.yml
+#  when: not rslsync.stat.exists
+
+
+- name: configure resilio-sync
+  include: configure.yml
+

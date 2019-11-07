@@ -1,0 +1,52 @@
+---
+
+- name: create dir for synchronization
+  file:
+    path: "{{v_dir}}"
+    state: directory
+    owner: rslsync
+  notify:
+    - restart service rslsync
+  become: yes
+
+- name: is file /etc/resilio-sync/secret.txt exist
+  stat: path="/etc/resilio-sync/secret.txt"
+  register: secretfile
+
+- debug: var=v_secret
+
+- name: template service
+  template:
+      src: config.json.j2
+      dest: /etc/resilio-sync/config.json
+      mode: 0640
+      owner: rslsync
+  notify:
+#    - systemd daemon reload
+    - restart service rslsync
+#    - save fact
+  become: yes
+  when: not secretfile.stat.exists or  v_secret != ""
+
+
+- name: create secret
+  shell: |
+    SECRET=$(rslsync --generate-secret) && 
+    echo $SECRET > /etc/resilio-sync/secret.txt &&
+    chown rslsync /etc/resilio-sync/secret.txt &&
+    chmod 0640 /etc/resilio-sync/secret.txt &&
+    sed -i "s/\"secret\" \: \"\"/\"secret\" \: \"${SECRET}\"/" /etc/resilio-sync/config.json  
+  args:
+    creates: /etc/resilio-sync/secret.txt
+  become: yes
+  notify: restart service rslsync
+  when:  v_secret == ""
+
+
+- name: delete secret.txt after created manual secret  for next regenerate secret
+  file:
+    path: /etc/resilio-sync/secret.txt
+    state: absent
+  when: secretfile.stat.exists and v_secret != ""
+  become: yes
+
